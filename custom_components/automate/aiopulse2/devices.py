@@ -508,7 +508,8 @@ class Roller:
 
     def update_rails(self, mp1: int, mp2: int, moving1: bool, moving2: bool) -> bool:
         """Apply new rail positions from the hub. Returns True if anything changed."""
-        changed = not self.is_tdbu
+        first_time = not self.is_tdbu
+        changed = first_time
         self.is_tdbu = True
         for rail, pos, moving in ((1, mp1, moving1), (2, mp2, moving2)):
             old = self.rail_closed_percent[rail]
@@ -530,6 +531,11 @@ class Roller:
                 self.rail_target[rail] = None
         if changed:
             self.notify_callback()
+        if first_time:
+            # Ask the hub listeners to look again, so the Top and Bottom entities
+            # get created even if the first entity scan happened before we knew
+            # this was a TDBU shade.
+            self.hub.notify_callback()
         return changed
 
     async def move_rail(self, rail: int, percent: int):

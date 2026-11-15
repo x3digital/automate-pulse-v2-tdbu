@@ -17,10 +17,14 @@ async def main():
     async def fake_serial(*a, **k): pass
     hub.send_payload = fake_send
     hub.runserial = fake_serial
+    hub_notified = []
+    hub.callback_subscribe(lambda h: hub_notified.append(1))
+    hub.async_add_job = lambda cb, *a: cb(*a)
     await hub.wsconsumer(payload(68, 30))
     r = hub.rollers["RY1"]
     r.name = "Shade"
     print("tdbu", r.is_tdbu, "rails", r.rail_closed_percent, "type", r.devicetype, "batt%", r.battery_percent, "coverage", r.coverage_percent)
+    assert hub_notified, "hub listeners must be told when a TDBU shade is found"
     assert r.is_tdbu and r.rail_closed_percent == {1: 68, 2: 30} and r.devicetype == "Top down bottom up motor"
     # top rail moved from app
     await hub.wsconsumer(payload(68, 30, is2=False))
