@@ -14,17 +14,21 @@ async def main():
     hub = aiopulse2.Hub("192.168.50.131")
     sent = []
     async def fake_send(p): sent.append(p)
-    async def fake_serial(*a, **k): pass
+    async def fake_serial(*a, **k):
+        # Real order of events: the shade name arrives while the hub is still
+        # processing the first payload, before the rail data has been read.
+        for rid in list(hub.unknown_rollers):
+            hub.handle_device_query_name_response(rid, "Shade")
     hub.send_payload = fake_send
     hub.runserial = fake_serial
     hub_notified = []
-    hub.callback_subscribe(lambda h: hub_notified.append(1))
+    hub.callback_subscribe(lambda h: hub_notified.append(h.rollers["RY1"].is_tdbu if "RY1" in h.rollers else None))
     hub.async_add_job = lambda cb, *a: cb(*a)
     await hub.wsconsumer(payload(68, 30))
     r = hub.rollers["RY1"]
-    r.name = "Shade"
     print("tdbu", r.is_tdbu, "rails", r.rail_closed_percent, "type", r.devicetype, "batt%", r.battery_percent, "coverage", r.coverage_percent)
-    assert hub_notified, "hub listeners must be told when a TDBU shade is found"
+    print("hub scans saw is_tdbu =", hub_notified)
+    assert hub_notified and hub_notified[-1] is True, "a scan must happen after the shade is known to be TDBU"
     assert r.is_tdbu and r.rail_closed_percent == {1: 68, 2: 30} and r.devicetype == "Top down bottom up motor"
     # top rail moved from app
     await hub.wsconsumer(payload(68, 30, is2=False))
