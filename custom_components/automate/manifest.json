@@ -1,0 +1,16 @@
+{
+  "domain": "automate",
+  "name": "Automate Pulse Hub v2",
+  "version": "1.1.0",
+  "config_flow": true,
+  "iot_class": "local_push",
+  "documentation": "https://github.com/x3digital/automate-pulse-v2-tdbu",
+  "issue_tracker": "https://github.com/x3digital/automate-pulse-v2-tdbu/issues",
+  "requirements": [
+    "async_timeout>=3.0",
+    "websockets>=10.1"
+  ],
+  "codeowners": [
+    "@sillyfrog"
+  ]
+}

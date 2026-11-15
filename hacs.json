@@ -1,0 +1,8 @@
+{
+  "name": "Automate Pulse Hub v2 (with Top Down Bottom Up)",
+  "render_readme": true,
+  "iot_class": [
+    "Local Polling",
+    "Local Push"
+  ]
+}
